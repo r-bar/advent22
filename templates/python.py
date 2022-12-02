@@ -1,16 +1,12 @@
+import sys
+
+
 def main():
-    elves = []
-    snacks = []
-    with open('input.txt') as f:
-        for line in f:
-            line = line.strip()
-            if line == "":
-                elves.append(snacks)
-                snacks = []
-                continue
-            snacks.append(int(line))
-    elf_calories = [sum(snacks) for snacks in elves]
-    print(max(elf_calories))
+    input_filename = sys.argv[1] if len(sys.argv) > 1 else "input.txt"
+    with open(input_filename) as f:
+        lines = [line.strip() for line in f]
+    print(len(lines))
+
 
 if __name__ == '__main__':
     main()
