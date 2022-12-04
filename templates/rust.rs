@@ -3,7 +3,9 @@ use std::io::prelude::*;
 use std::io::BufReader;
 
 fn main() -> anyhow::Result<()> {
-    let filename = std::env::args().nth(1).unwrap_or("input.txt");
+    let filename = std::env::args()
+        .nth(1)
+        .unwrap_or_else(|| "input.txt".to_string());
     let f = File::open(&filename)?;
     let reader = BufReader::new(f);
     for line in reader.lines() {
