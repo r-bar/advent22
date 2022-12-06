@@ -1,30 +1,13 @@
 use std::collections::HashSet;
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
 
-fn find_start_of_packet(data: &str) -> Option<usize> {
+fn find_unique_window(size: usize, data: &[impl PartialEq]) -> Option<usize> {
     let mut ptr = 0;
-    while ptr + 4 < data.len() {
-        let packet = &data[ptr..ptr + 4];
-        let uniq: HashSet<char> = packet.chars().collect();
-        if packet.len() == uniq.len() {
+    for (i, c) in data.iter().enumerate() {
+        if let Some(last_index) = data[ptr..i].iter().position(|w| w == c) {
+            ptr += last_index + 1;
+        } else if i - ptr + 1 == size {
             return Some(ptr);
         }
-        ptr += 1;
-    }
-    None
-}
-
-fn find_start_of_message(data: &str) -> Option<usize> {
-    let mut ptr = 0;
-    while ptr + 14 < data.len() {
-        let packet = &data[ptr..ptr + 14];
-        let uniq: HashSet<char> = packet.chars().collect();
-        if packet.len() == uniq.len() {
-            return Some(ptr);
-        }
-        ptr += 1;
     }
     None
 }
@@ -33,12 +16,16 @@ fn main() -> anyhow::Result<()> {
     let filename = std::env::args()
         .nth(1)
         .unwrap_or_else(|| "input.txt".to_string());
-    let data = String::from_utf8(std::fs::read(&filename)?)?;
-    if let Some(packet) = find_start_of_packet(&data) {
-        println!("Start of packet: {}", packet + 4);
+    let data: Vec<char> = String::from_utf8(std::fs::read(&filename)?)?
+        .chars()
+        .collect();
+    match find_unique_window(4, &data) {
+        Some(packet_start) => println!("Start of packet: {}", packet_start),
+        None => println!("Could not find packet start"),
     }
-    if let Some(message) = find_start_of_message(&data) {
-        println!("Start of message: {}", message + 14);
+    match find_unique_window(14, &data) {
+        Some(message_start) => println!("Start of message: {}", message_start),
+        None => println!("Could not find message start"),
     }
     Ok(())
 }
