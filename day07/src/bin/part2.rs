@@ -201,13 +201,12 @@ impl Machine {
     fn cd(&mut self, dir: &str) -> anyhow::Result<()> {
         match dir {
             ".." => {
-                //self.cwd.pop().ok_or_else(|| e!("no parent directory"))?;
                 self.cwd.pop().context("no parent directory")?;
             }
             _ => {
                 self.fs
                     .get_path(&self.cwd)
-                    .ok_or_else(|| e!("current working directory does not exist"))?
+                    .context("current working directory does not exist")?
                     .get(dir);
                 self.cwd.push(dir.to_string());
             }
@@ -235,13 +234,13 @@ fn main() -> anyhow::Result<()> {
     }
     let free_space = TOTAL_SPACE - machine.fs.du();
     let need_freed = REQUIRED_SPACE - free_space;
-    assert!(need_freed > 0);
+    assert!(need_freed > 0, "we actually need to delete stuff right?");
     let mut candidates: Vec<_> = (&machine.fs)
         .into_iter()
         .filter(|fs| fs.is_dir() && fs.du() >= need_freed)
         .collect();
     candidates.sort_by_key(|fs| fs.du());
-    let to_delete = candidates.first().expect("no candidates found");
+    let to_delete = candidates.first().context("no candidates found")?;
     println!("{}", to_delete.du());
     Ok(())
 }
