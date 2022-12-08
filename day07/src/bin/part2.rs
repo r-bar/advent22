@@ -23,24 +23,16 @@ impl FromStr for InputLine {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim_end();
         let parts: Vec<&str> = s.split(|c: char| c.is_whitespace()).collect();
-        if parts.len() < 2 {
-            return Err(e!("unknown command {}", s));
+        match parts[..] {
+            ["$", "ls"] => Ok(InputLine::Ls),
+            ["$", "cd", dir] => Ok(InputLine::Cd(dir.to_string())),
+            ["dir", name] => Ok(InputLine::Dir(name.to_string())),
+            [size, name] => {
+                let size = size.parse::<usize>()?;
+                Ok(InputLine::File(size, name.to_string()))
+            }
+            _ => Err(e!("unknown command {}", s)),
         }
-        if s.starts_with("$ cd") {
-            let dir = parts.last().ok_or_else(|| e!("malformed command {}", s))?;
-            return Ok(InputLine::Cd(dir.to_string()));
-        }
-        if s == "$ ls" {
-            return Ok(InputLine::Ls);
-        }
-        if parts[0] == "dir" {
-            let dir = parts.last().ok_or_else(|| e!("malformed command {}", s))?;
-            return Ok(InputLine::Dir(dir.to_string()));
-        }
-        if let Ok(size) = parts[0].parse::<usize>() {
-            return Ok(InputLine::File(size, parts[1].to_string()));
-        }
-        Err(e!("unknown command {}", s))
     }
 }
 
