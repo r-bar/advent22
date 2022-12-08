@@ -141,7 +141,6 @@ impl<'a> Iterator for FileSystemIterator<'a> {
     type Item = &'a FileSystem;
 
     fn next<'b>(&mut self) -> Option<Self::Item> {
-        //todo!()
         let n = self.0.pop();
         match n {
             Some(FileSystem::File(_, _)) => n,
