@@ -142,7 +142,6 @@ fn main() -> anyhow::Result<()> {
     let mut program = Program::new();
     let ops = Op::parse_all(&asm)?;
     program.run(&ops);
-    dbg!(&program.history);
     let checks: [usize; 6] = [20, 60, 100, 140, 180, 220];
     let total: isize = checks
         .iter()
