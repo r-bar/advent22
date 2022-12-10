@@ -103,6 +103,7 @@ impl Program {
     }
 
     fn state_at_cycle(&self, cycle: usize) -> Option<Machine> {
+        assert_ne!(cycle, 220);
         let mut prev = None;
         for entry in &self.history {
             match cycle.cmp(&entry.elapsed_cycles) {
@@ -115,7 +116,7 @@ impl Program {
     }
 
     fn signal_strength(&self, cycle: usize) -> Option<isize> {
-        self.state_at_cycle(cycle)
+        self.state_at_cycle(cycle - 1)
             .map(|state| state.x * (cycle as isize))
     }
 
@@ -167,22 +168,11 @@ mod test {
         }
         dbg!(&program.history);
 
-        assert_eq!(program.state_at_cycle(20).unwrap().x, 21);
         assert_eq!(program.signal_strength(20), Some(420));
-
-        assert_eq!(program.state_at_cycle(60).unwrap().x, 19);
         assert_eq!(program.signal_strength(60), Some(1140));
-
-        assert_eq!(program.state_at_cycle(100).unwrap().x, 18);
         assert_eq!(program.signal_strength(100), Some(1800));
-
-        assert_eq!(program.state_at_cycle(140).unwrap().x, 21);
         assert_eq!(program.signal_strength(140), Some(2940));
-
-        assert_eq!(program.state_at_cycle(180).unwrap().x, 16);
         assert_eq!(program.signal_strength(180), Some(2880));
-
-        assert_eq!(program.state_at_cycle(220).unwrap().x, 18);
         assert_eq!(program.signal_strength(220), Some(3960));
 
         Ok(())
