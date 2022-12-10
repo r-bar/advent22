@@ -2,7 +2,6 @@ BASE_URL = https://adventofcode.com/2022
 SIMPLE_NUM_PAT = $(shell sed 's/^0\+//' <<< '$*')
 
 day%: # day%/input.txt day%/README.md
-	test -d $@ || exit 1 # guard overwriting
 	mkdir -p $@/src/bin
 	sed -i 's/#"$@"/"$@"/' Cargo.toml
 	touch $@/answers.txt $@/example.txt
