@@ -1,4 +1,4 @@
-use anyhow::anyhow as e;
+use anyhow::Context;
 use nom::{
     branch::alt,
     bytes::complete::{tag, take_while},
@@ -6,15 +6,12 @@ use nom::{
         complete::{digit1, multispace0, multispace1},
         streaming::char,
     },
-    combinator::{map_res, value},
+    combinator::map_res,
     error::{Error as NomError, ErrorKind},
     multi::separated_list0,
     sequence::{delimited, preceded},
-    Finish, IResult, Parser,
+    Finish, IResult,
 };
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::BufReader;
 use std::str::FromStr;
 
 // will recognize the name in "Hello, name!"
@@ -108,6 +105,7 @@ struct Monkey {
     test_divisible: usize,
     true_throw_index: usize,
     false_throw_index: usize,
+    inspections: usize,
 }
 
 impl Monkey {
@@ -157,6 +155,7 @@ impl Monkey {
             test_divisible,
             true_throw_index,
             false_throw_index,
+            inspections: 0,
         };
         Ok((i, monkey))
     }
@@ -172,6 +171,10 @@ impl Monkey {
         }
     }
 
+    fn catch(&mut self, item: usize) {
+        self.items.push(item);
+    }
+
     // Runs all actions on an item and returns a list of items and the index of the monkey to toss
     // them too
     fn inspect(&mut self) -> Vec<(usize, usize)> {
@@ -185,15 +188,34 @@ impl Monkey {
             };
             throws.push((item, to_monkey))
         }
+        self.inspections += self.items.len();
+        self.items.clear();
         throws
     }
 }
 
-impl FromStr for Monkey {
-    type Err = anyhow::Error;
-    fn from_str(input: &str) -> Result<Self, Self::Err> {
-        todo!()
+fn run_rounds(monkeys: &mut Vec<Monkey>, rounds: usize) -> anyhow::Result<()> {
+    for _round in 0..rounds {
+        run_round(monkeys)?;
     }
+    Ok(())
+}
+
+fn run_round(monkeys: &mut Vec<Monkey>) -> anyhow::Result<()> {
+    for monkey_index in 0..monkeys.len() {
+        let throws = monkeys[monkey_index].inspect();
+        for (item, to_monkey) in throws {
+            monkeys[to_monkey].catch(item);
+        }
+    }
+    Ok(())
+}
+
+fn calculate_monkey_business(monkeys: &Vec<Monkey>) -> usize {
+    let count = monkeys.len();
+    let mut inspections: Vec<usize> = monkeys.iter().map(|monkey| monkey.inspections).collect();
+    inspections.sort();
+    inspections[(count - 2)..count].iter().product()
 }
 
 fn main() -> anyhow::Result<()> {
@@ -201,9 +223,6 @@ fn main() -> anyhow::Result<()> {
         .nth(1)
         .unwrap_or_else(|| "input.txt".to_string());
     let input = std::fs::read_to_string(&filename)?;
-    let s = "Hello, Anakin Skywalker";
-    let name = parse_name(&s)?;
-    println!("{:?}", name);
     let mut remaining = input.as_str();
     let mut monkeys = Vec::new();
     while !remaining.is_empty() {
@@ -211,6 +230,8 @@ fn main() -> anyhow::Result<()> {
         monkeys.push(monkey);
         remaining = i;
     }
+    run_rounds(&mut monkeys, 20)?;
+    println!("{}", calculate_monkey_business(&monkeys));
     Ok(())
 }
 
@@ -221,7 +242,6 @@ mod test {
     #[test]
     fn test_parse_monkey() {
         let example = include_str!("../../example.txt");
-        dbg!(example);
         let monkey = Monkey::parse(example).unwrap();
         dbg!(monkey);
     }
@@ -229,7 +249,6 @@ mod test {
     #[test]
     fn test_parse_monkeys() {
         let example = include_str!("../../example.txt");
-        dbg!(example);
         let mut remaining = example;
         let mut monkeys = Vec::new();
         while !&remaining.is_empty() {
@@ -239,5 +258,25 @@ mod test {
         }
         dbg!(&monkeys);
         assert_eq!(monkeys.len(), 4);
+    }
+
+    #[test]
+    fn test_monkey_business() {
+        let example = include_str!("../../example.txt");
+
+        let mut monkeys = Vec::new();
+        let mut remaining = example;
+        while !remaining.is_empty() {
+            let (i, monkey) = Monkey::parse(remaining).unwrap();
+            monkeys.insert(monkey.index, monkey);
+            remaining = i;
+        }
+        run_round(&mut monkeys).unwrap();
+        run_rounds(&mut monkeys, 19).unwrap();
+        assert_eq!(monkeys[0].inspections, 101);
+        assert_eq!(monkeys[1].inspections, 95);
+        assert_eq!(monkeys[2].inspections, 7);
+        assert_eq!(monkeys[3].inspections, 105);
+        assert_eq!(calculate_monkey_business(&monkeys), 10605);
     }
 }
