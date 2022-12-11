@@ -17,13 +17,12 @@ impl Machine {
 
     fn execute(&mut self, op: &Op) -> Vec<bool> {
         let mut pixels = Vec::new();
+        for _ in 0..op.cycles() {
+            pixels.push(self.tick());
+        }
         match op {
-            Op::Noop => {
-                pixels.push(self.tick());
-            }
+            Op::Noop => (),
             Op::Addx(n) => {
-                pixels.push(self.tick());
-                pixels.push(self.tick());
                 self.x += n;
             }
         }
