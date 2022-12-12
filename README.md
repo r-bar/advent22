@@ -9,7 +9,7 @@ is to prototype in Rust vs Python on smaller apps like this.
 ## Add a new challenge folder
 ```
 export COOKIE=session=53616c7...
-make day05
+just template-day 5
 ```
 This command will automatically create a `README.md` with the prompt(s). 
 The challenge input will be saved to `input.txt`.
@@ -23,7 +23,7 @@ for any request to adventofcode.com. The set the `COOKIE` environment variable
 with this session value
 
 Requirements:
-* GNU make
+* [just](https://github.com/casey/just)
 * curl
 * [hq](https://github.com/coderobe/hq)
 * GNU sed

@@ -19,9 +19,9 @@ template-day num: && (template-readme num) (download-input num)
 	git add $(just day-dir {{num}})
 
 
-[private]
 # output the name of the day directory
 # This is used to centralize naming and account for the lack of interpolation in ``
+[private]
 day-dir num:
 	@echo "day$(printf '%02d' {{num}})"
 
