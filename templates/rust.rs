@@ -13,3 +13,16 @@ fn main() -> anyhow::Result<()> {
     }
     Ok(())
 }
+
+#[cfg(test)]
+mod test {
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        fn #[test]
+        fn example_test() {
+            let example = include_str!("../../example.txt");
+        }
+    }
+}
